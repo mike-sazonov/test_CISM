@@ -4,7 +4,7 @@ from uuid import uuid4
 
 from datetime import datetime, timezone
 
-from sqlalchemy import String, Enum, DateTime, Text
+from sqlalchemy import String, Enum, DateTime, Text, func
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.dialects.postgresql import UUID
 
@@ -38,7 +38,9 @@ class Task(Base):
     description: Mapped[str] = mapped_column(Text, default="")
     priority: Mapped[TaskPriority] = mapped_column(Enum(TaskPriority), default=TaskPriority.MEDIUM)
     status: Mapped[TaskStatus] = mapped_column(Enum(TaskStatus), default=TaskStatus.NEW)
-    created_at: Mapped[datetime | None] = mapped_column(DateTime, default=datetime.now(timezone.utc))
+    created_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), server_default=func.now()
+    )
     started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     result: Mapped[str | None] = mapped_column(Text, nullable=True)

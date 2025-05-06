@@ -6,14 +6,14 @@ from app.db.models import TaskPriority, TaskStatus
 
 
 class TaskCreate(BaseModel):
-    name: str
+    title: str
     description: str
     priority: TaskPriority = TaskPriority.MEDIUM
 
 
 class TaskFromDB(BaseModel):
     id: UUID
-    name: str
+    title: str
     description: str
     priority: TaskPriority
     status: TaskStatus

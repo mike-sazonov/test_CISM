@@ -1,4 +1,4 @@
-from fastapi.exceptions import HTTPException
+from fastapi import HTTPException, status
 
 from app.api.schemas.task import TaskCreate, TaskFromDB, TaskStatusOut
 from app.utils.unitofwork import IUnitOfWork
@@ -18,14 +18,18 @@ class TaskService:
             task = TaskFromDB.model_validate(task_from_db)
 
             await self.uow.commit()
-
-        await rabbit_publisher.publish(
-            routing_key="task.created",
-            message_body={
-                "task_id": str(task.id),
-                "title": task.title,
-                "description": task.description,
-                "created_at": task.created_at.isoformat(),
-            },
-            priority=TaskPriority(task.priority).numeric
-        )
+        try:
+            await rabbit_publisher.publish(
+                routing_key="task.created",
+                message_body={
+                    "task_id": str(task.id),
+                    "title": task.title,
+                    "description": task.description,
+                    "created_at": task.created_at.isoformat(),
+                },
+                priority=TaskPriority(task.priority).numeric
+            )
+            await self.uow.task.update_one({"status": "PENDING"}, id=task.id)
+            await self.uow.commit()
+        except Exception as e:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)

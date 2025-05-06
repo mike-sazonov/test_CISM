@@ -20,5 +20,6 @@ async def create_task(request: Request,
         task_data: TaskCreate,
         task_service: TaskService = Depends(get_task_service),
                       ):
-    return await task_service.create_task(task_data, request.app.state.rabbit_publisher)
+    await task_service.create_task(task_data, request.app.state.rabbit_publisher)
+
 
