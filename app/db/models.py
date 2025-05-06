@@ -19,6 +19,7 @@ class TaskStatus(str, enum.Enum):
     FAILED = "FAILED"
     CANCELLED = "CANCELLED"
 
+
 class TaskPriority(str, enum.Enum):
     LOW = "LOW"
     MEDIUM = "MEDIUM"
@@ -27,6 +28,7 @@ class TaskPriority(str, enum.Enum):
     @property
     def numeric(self) -> int:
         return {"LOW": 1, "MEDIUM": 2, "HIGH": 3}[self.value]
+
 
 class Task(Base):
     __tablename__ = "tasks"
