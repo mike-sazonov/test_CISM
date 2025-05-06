@@ -6,7 +6,7 @@ from aio_pika import connect_robust, RobustConnection, RobustChannel, IncomingMe
 from app.core.logger import logger
 from app.core.config import settings
 from app.utils.unitofwork import IUnitOfWork
-from app.db.models import TaskStatus
+from app.entity.task import TaskStatus
 
 
 class TaskWorker:

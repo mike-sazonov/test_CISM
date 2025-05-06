@@ -1,8 +1,27 @@
+import enum
+
 from uuid import UUID
 from datetime import datetime
 from pydantic import BaseModel
 
-from app.db.models import TaskPriority, TaskStatus
+
+class TaskStatus(str, enum.Enum):
+    NEW = "NEW"
+    PENDING = "PENDING"
+    IN_PROGRESS = "IN_PROGRESS"
+    COMPLETED = "COMPLETED"
+    FAILED = "FAILED"
+    CANCELLED = "CANCELLED"
+
+
+class TaskPriority(str, enum.Enum):
+    LOW = "LOW"
+    MEDIUM = "MEDIUM"
+    HIGH = "HIGH"
+
+    @property
+    def numeric(self) -> int:
+        return {"LOW": 1, "MEDIUM": 2, "HIGH": 3}[self.value]
 
 
 class TaskCreate(BaseModel):

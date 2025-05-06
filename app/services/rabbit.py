@@ -1,10 +1,11 @@
 import json
 
 from aio_pika import connect_robust, Message, RobustConnection, RobustChannel, ExchangeType
+
 from typing import Any
 
 
-class RabbitPublisher:
+class RabbitService:
     def __init__(self, rabbitmq_url: str, exchange_name: str = "tasks", queue_name: str = "task_queue"):
         self.rabbitmq_url = rabbitmq_url
         self.exchange_name = exchange_name

@@ -38,7 +38,6 @@ class UnitOfWork(IUnitOfWork):
         self.task = TaskRepository(self.session)
 
     async def __aexit__(self, *args):
-        await self.rollback()
         await self.session.close()
 
     async def commit(self):

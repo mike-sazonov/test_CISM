@@ -1,5 +1,3 @@
-import enum
-
 from uuid import uuid4
 
 from datetime import datetime, timezone
@@ -8,26 +6,8 @@ from sqlalchemy import String, Enum, DateTime, Text, func
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.dialects.postgresql import UUID
 
+from app.entity.task import TaskPriority, TaskStatus
 from app.db.database import Base
-
-
-class TaskStatus(str, enum.Enum):
-    NEW = "NEW"
-    PENDING = "PENDING"
-    IN_PROGRESS = "IN_PROGRESS"
-    COMPLETED = "COMPLETED"
-    FAILED = "FAILED"
-    CANCELLED = "CANCELLED"
-
-
-class TaskPriority(str, enum.Enum):
-    LOW = "LOW"
-    MEDIUM = "MEDIUM"
-    HIGH = "HIGH"
-
-    @property
-    def numeric(self) -> int:
-        return {"LOW": 1, "MEDIUM": 2, "HIGH": 3}[self.value]
 
 
 class Task(Base):
