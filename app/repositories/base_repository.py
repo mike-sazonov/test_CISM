@@ -27,6 +27,12 @@ class SQLAlchemyRepository(AbstractRepository):
         res = res.scalar_one_or_none()
         return res
 
+    async def find_filter(self, **filter_by):
+        stmt = select(self.model).filter_by(**filter_by)
+        res = await self.session.execute(stmt)
+        res = res.scalars().all()
+        return res
+
     async def find_all(self):
         res = await self.session.execute(select(self.model))
         return res.scalars().all()

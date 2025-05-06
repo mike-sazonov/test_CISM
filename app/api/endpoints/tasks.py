@@ -1,18 +1,12 @@
-from fastapi import APIRouter, Depends, FastAPI, Request
+from fastapi import APIRouter, Depends, Request
 
-from app.services.rabbit_publisher import RabbitPublisher
-from app.api.schemas.task import TaskCreate, TaskFromDB
-from app.services.task_service import TaskService
-from app.utils.unitofwork import UnitOfWork, IUnitOfWork
+from app.api.schemas.task import TaskCreate
+from app.services.task_service import TaskService, get_task_service
 
 
 tasks_router = APIRouter(
     prefix="/api/v1/tasks"
 )
-
-
-async def get_task_service(uow: IUnitOfWork = Depends(UnitOfWork)):
-    return TaskService(uow)
 
 
 @tasks_router.post('/')

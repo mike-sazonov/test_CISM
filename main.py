@@ -9,6 +9,7 @@ from app.core.config import settings
 from app.api.endpoints.tasks import tasks_router
 from app.services.rabbit_publisher import RabbitPublisher
 
+
 rabbit_publisher: RabbitPublisher | None = None
 
 

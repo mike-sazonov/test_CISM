@@ -36,8 +36,6 @@ class RabbitPublisher:
         # Биндим очередь к обменнику
         await queue.bind(self.exchange, routing_key="task.*")
 
-    async def check_tasks(self, ):
-        ...
 
     async def publish(self, routing_key: str, message_body: dict[str, Any], priority: int):
         """Публикация сообщения с учетом приоритета."""
