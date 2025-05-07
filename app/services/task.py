@@ -1,3 +1,6 @@
+import math
+
+from app.entity.filter import TaskFilter
 from app.entity.task import TaskCreate, TaskFromDB, TaskPriority
 from app.services.rabbit import RabbitService
 from app.utils.unitofwork import IUnitOfWork
@@ -33,3 +36,18 @@ class TaskService:
 
             await self.uow.commit()
             await self.publish_task(task)
+
+
+    async def get_all_tasks(self, task_filter: TaskFilter, page: int, size: int):
+        offset_min = page * size
+        offset_max = (page + 1) * size
+        async with self.uow:
+            tasks = await self.uow.task.get_tasks_filter(task_filter)
+            response = tasks[offset_min:offset_max] + [
+                {
+                    "page": page,
+                    "size": size,
+                    "total": math.ceil(len(tasks) / size) - 1,
+                }
+            ]
+            return response
