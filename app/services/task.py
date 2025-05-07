@@ -1,6 +1,6 @@
 from app.entity.task import TaskCreate, TaskFromDB, TaskPriority
-from app.utils.unitofwork import IUnitOfWork
 from app.services.rabbit import RabbitService
+from app.utils.unitofwork import IUnitOfWork
 
 
 class TaskService:

@@ -1,13 +1,12 @@
+from datetime import datetime, timezone
 from uuid import uuid4
 
-from datetime import datetime, timezone
-
-from sqlalchemy import String, Enum, DateTime, Text, func
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import DateTime, Enum, String, Text, func
 from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import Mapped, mapped_column
 
-from app.entity.task import TaskPriority, TaskStatus
 from app.db.database import Base
+from app.entity.task import TaskPriority, TaskStatus
 
 
 class Task(Base):

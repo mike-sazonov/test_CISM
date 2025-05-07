@@ -1,9 +1,8 @@
 from fastapi import APIRouter, Depends
 
+from app.api.dependencies import get_task_service
 from app.entity.task import TaskCreate
 from app.services.task import TaskService
-from app.api.dependencies import get_task_service
-
 
 tasks_router = APIRouter(
     prefix="/api/v1/tasks"

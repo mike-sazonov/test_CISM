@@ -1,7 +1,7 @@
 from fastapi import Depends, Request
 
-from app.utils.unitofwork import UnitOfWork, IUnitOfWork
 from app.services.task import TaskService
+from app.utils.unitofwork import IUnitOfWork, UnitOfWork
 
 
 async def get_task_service(request: Request, uow: IUnitOfWork = Depends(UnitOfWork)):

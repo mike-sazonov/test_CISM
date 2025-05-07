@@ -1,8 +1,13 @@
 import json
-
-from aio_pika import connect_robust, Message, RobustConnection, RobustChannel, ExchangeType
-
 from typing import Any
+
+from aio_pika import (
+    ExchangeType,
+    Message,
+    RobustChannel,
+    RobustConnection,
+    connect_robust,
+)
 
 
 class RabbitService:
