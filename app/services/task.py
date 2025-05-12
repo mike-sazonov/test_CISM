@@ -1,7 +1,10 @@
 import math
+from uuid import UUID
+
+from fastapi import HTTPException, status
 
 from app.entity.filter import TaskFilter
-from app.entity.task import TaskCreate, TaskFromDB, TaskPriority
+from app.entity.task import TaskCreate, TaskFromDB, TaskPriority, TaskStatus
 from app.services.rabbit import RabbitService
 from app.utils.unitofwork import IUnitOfWork
 
@@ -23,7 +26,7 @@ class TaskService:
                 },
                 priority=TaskPriority(task.priority).numeric
             )
-            await self.uow.task.update_one({"status": "PENDING"}, id=task.id)
+            await self.uow.task.update_one({"status": TaskStatus.PENDING}, id=task.id)
             await self.uow.commit()
 
 
@@ -36,6 +39,24 @@ class TaskService:
 
             await self.uow.commit()
             await self.publish_task(task)
+
+
+    async def get_task(self, task_id: UUID):
+        async with self.uow:
+            task = await self.uow.task.find_one(id=task_id)
+            return task
+
+
+    async def get_task_status(self, task_id: UUID):
+        async with self.uow:
+            task = await self.uow.task.find_one(id=task_id)
+
+            if not task:
+                raise HTTPException(
+                    status.HTTP_404_NOT_FOUND, detail='Task not found'
+                )
+
+            return task.status
 
 
     async def get_all_tasks(self, task_filter: TaskFilter, page: int, size: int):
@@ -51,3 +72,21 @@ class TaskService:
                 }
             ]
             return response
+
+
+    async def cancel_task(self, task_id: UUID):
+        async with self.uow:
+            task = await self.uow.task.find_one(id=task_id)
+
+            if not task:
+                raise HTTPException(
+                    status.HTTP_404_NOT_FOUND, detail='Task not found'
+                )
+
+            if task.status not in (TaskStatus.NEW, TaskStatus.PENDING):
+                raise HTTPException(
+                    status.HTTP_400_BAD_REQUEST, detail='Task in wrong status for cancelling'
+                )
+
+            await self.uow.task.update_one({"status": TaskStatus.CANCELLED}, id=task_id)
+            await self.uow.commit()
