@@ -16,6 +16,8 @@ class TaskService:
 
     async def publish_task(self, task: TaskFromDB):
         async with self.uow:
+            await self.uow.task.update_one({"status": TaskStatus.PENDING}, id=task.id)
+            await self.uow.commit()
             await self.rabbit_service.publish(
                 routing_key="task.created",
                 message_body={
@@ -26,8 +28,6 @@ class TaskService:
                 },
                 priority=TaskPriority(task.priority).numeric
             )
-            await self.uow.task.update_one({"status": TaskStatus.PENDING}, id=task.id)
-            await self.uow.commit()
 
 
     async def create_task(self, task: TaskCreate):

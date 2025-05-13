@@ -1,17 +1,19 @@
 import asyncio
 import json
+from datetime import datetime, timezone
 
-from aio_pika import connect_robust, RobustConnection, RobustChannel, IncomingMessage
+from aio_pika import IncomingMessage, RobustChannel, RobustConnection, connect_robust
 
-from app.core.logger import logger
 from app.core.config import settings
-from app.utils.unitofwork import IUnitOfWork
+from app.core.logger import logger
 from app.entity.task import TaskStatus
+from app.utils.unitofwork import IUnitOfWork, UnitOfWork
 
 
 class TaskWorker:
-    def __init__(self, rabbitmq_url: str, queue_name: str = "task_queue"):
+    def __init__(self, rabbitmq_url: str, uow: IUnitOfWork = UnitOfWork(), queue_name: str = "task_queue"):
         self.rabbitmq_url = rabbitmq_url
+        self.uow = uow
         self.queue_name = queue_name
         self.connection: RobustConnection | None = None
         self.channel: RobustChannel | None = None
@@ -33,11 +35,12 @@ class TaskWorker:
                 logger.info("Received message without task_id")
 
             logger.info(f"Processed task {task_id}")
+            await self.process_task(task_id)
 
 
     async def process_task(self, task_id: str):
-            async with IUnitOfWork() as uow:
-                task = await uow.task.find_one(id=task_id)
+            async with self.uow:
+                task = await self.uow.task.find_one(id=task_id)
 
                 if not task:
                     logger.info(f"Task {task_id} not found")
@@ -48,26 +51,30 @@ class TaskWorker:
                     return
 
                 task.status = TaskStatus.IN_PROGRESS
-                await uow.commit()
+                task.started_at = datetime.now(timezone.utc)
+                await self.uow.commit()
 
-            try:
-                await asyncio.sleep(2)
-
-
-                async with IUnitOfWork() as uow:
-                    task = await uow.task.find_one(id=task_id)
+                try:
+                    task = await self.uow.task.find_one(id=task_id)
                     if not task:
                         return
 
-                    task.status = TaskStatus.COMPLETED
-                    await uow.commit()
-                logger.info(f"Task {task_id} completed")
+                    await asyncio.sleep(2)
 
-            except Exception as e:
-                logger.error(f"Task {task_id} failed: {str(e)}")
-                if task:
-                    task.status = TaskStatus.FAILED
-                    await uow.commit()
+                    task.result = "task completed"
+                    task.status = TaskStatus.COMPLETED
+                    task.finished_at = datetime.now(timezone.utc)
+                    await self.uow.commit()
+                    logger.info(f"Task {task_id} completed")
+
+                except Exception as e:
+                    print(str(e))
+                    logger.exception(f"Task {task_id} failed: {e}")
+                    if task:
+                        task.error = f"error: {e.__class__}"
+                        task.status = TaskStatus.FAILED
+                        task.finished_at = datetime.now(timezone.utc)
+                        await self.uow.commit()
 
 
     async def start(self):
@@ -82,7 +89,3 @@ class TaskWorker:
 async def run_worker():
     worker = TaskWorker(rabbitmq_url=settings.RABBITMQ_URL)
     await worker.start()
-
-
-if __name__ == "__main__":
-    asyncio.run(run_worker())
