@@ -30,7 +30,7 @@ class TaskCreate(BaseModel):
     priority: TaskPriority = TaskPriority.MEDIUM
 
 
-class Task(BaseModel):
+class TaskOut(BaseModel):
     id: UUID
     title: str
     description: str
@@ -41,12 +41,5 @@ class Task(BaseModel):
     finished_at: datetime | None = None
     result: str | None = None
     error: str | None = None
-
-    model_config = {"from_attributes": True}
-
-
-class TaskStatusOut(BaseModel):
-    status: TaskStatus
-    id: UUID
 
     model_config = {"from_attributes": True}
