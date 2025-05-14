@@ -42,11 +42,11 @@ class Task(BaseModel):
     result: str | None = None
     error: str | None = None
 
-    model_config = {'from_attributes': True}
+    model_config = {"from_attributes": True}
 
 
 class TaskStatusOut(BaseModel):
     status: TaskStatus
     id: UUID
 
-    model_config = {'from_attributes': True}
+    model_config = {"from_attributes": True}

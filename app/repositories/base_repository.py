@@ -22,7 +22,7 @@ class SQLAlchemyRepository(AbstractRepository):
         stmt = insert(self.model).values(**data).returning(self.model)
         res = await self.session.execute(stmt)
         res = Task.model_validate(res.scalar_one())
-        return res # здесь валидируем энтити
+        return res  # здесь валидируем энтити
 
     async def find_one(self, **filter_by):
         stmt = select(self.model).filter_by(**filter_by).with_for_update()
@@ -35,5 +35,10 @@ class SQLAlchemyRepository(AbstractRepository):
         return res.scalars().all()
 
     async def update_one(self, params: dict, **filter_by):
-        stmt = update(self.model).values(**params).filter_by(**filter_by).returning(self.model)
+        stmt = (
+            update(self.model)
+            .values(**params)
+            .filter_by(**filter_by)
+            .returning(self.model)
+        )
         await self.session.execute(stmt)

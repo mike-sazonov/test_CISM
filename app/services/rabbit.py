@@ -11,7 +11,12 @@ from aio_pika import (
 
 
 class RabbitService:
-    def __init__(self, rabbitmq_url: str, exchange_name: str = "tasks", queue_name: str = "task_queue"):
+    def __init__(
+        self,
+        rabbitmq_url: str,
+        exchange_name: str = "tasks",
+        queue_name: str = "task_queue",
+    ):
         self.rabbitmq_url = rabbitmq_url
         self.exchange_name = exchange_name
         self.queue_name = queue_name
@@ -38,10 +43,13 @@ class RabbitService:
 
         await queue.bind(self.exchange, routing_key="task.*")
 
-
-    async def publish(self, routing_key: str, message_body: dict[str, Any], priority: int):
+    async def publish(
+        self, routing_key: str, message_body: dict[str, Any], priority: int
+    ):
         if not self.exchange:
-            raise RuntimeError("RabbitPublisher is not connected. Call connect() first.")
+            raise RuntimeError(
+                "RabbitPublisher is not connected. Call connect() first."
+            )
 
         message = Message(
             body=json.dumps(message_body).encode(),

@@ -11,7 +11,12 @@ from app.utils.unitofwork import IUnitOfWork, UnitOfWork
 
 
 class TaskWorker:
-    def __init__(self, rabbitmq_url: str, uow: IUnitOfWork = UnitOfWork(), queue_name: str = "task_queue"):
+    def __init__(
+        self,
+        rabbitmq_url: str,
+        uow: IUnitOfWork = UnitOfWork(),
+        queue_name: str = "task_queue",
+    ):
         self.rabbitmq_url = rabbitmq_url
         self.uow = uow
         self.queue_name = queue_name
@@ -19,12 +24,12 @@ class TaskWorker:
         self.channel: RobustChannel | None = None
         self.queue = None
 
-
     async def connect(self):
         self.connection = await connect_robust(self.rabbitmq_url)
         self.channel = await self.connection.channel()
-        self.queue = await self.channel.declare_queue(self.queue_name, durable=True, arguments={'x-max-priority': 10})
-
+        self.queue = await self.channel.declare_queue(
+            self.queue_name, durable=True, arguments={"x-max-priority": 10}
+        )
 
     async def handle_message(self, message: IncomingMessage):
         async with message.process():
@@ -37,8 +42,7 @@ class TaskWorker:
             logger.info(f"Processed task {task_id}")
             await self.process_task(task_id)
 
-
-    async def process_task(self, task_id: str):#? try except finally
+    async def process_task(self, task_id: str):  # ? try except finally
         async with self.uow:
             task = await self.uow.task.find_one(id=task_id)
             if not task:
@@ -54,12 +58,11 @@ class TaskWorker:
             await self.uow.commit()
         await self.complete_task(task_id)
 
-
     async def complete_task(self, task_id: str):
         async with self.uow:
             task = await self.uow.task.find_one(id=task_id)
             try:
-                pass # причина ошибки если asyncio.sleep(...)
+                pass  # some work with task
 
             except Exception as e:
                 logger.exception(f"Task {task_id} failed: {e}")
@@ -73,7 +76,6 @@ class TaskWorker:
                 task.finished_at = datetime.now(timezone.utc)
                 await self.uow.commit()
 
-
     async def start(self):
         await self.connect()
         logger.info("Worker is up")
@@ -82,6 +84,7 @@ class TaskWorker:
 
         while True:
             await asyncio.sleep(1)
+
 
 async def run_worker():
     worker = TaskWorker(rabbitmq_url=settings.RABBITMQ_URL)
