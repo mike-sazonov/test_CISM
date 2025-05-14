@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 from sqlalchemy import insert, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.entity.task import Task
+from app.entity.task import TaskOut
 
 
 class AbstractRepository(ABC):
@@ -21,18 +21,14 @@ class SQLAlchemyRepository(AbstractRepository):
     async def add_one(self, data: dict):
         stmt = insert(self.model).values(**data).returning(self.model)
         res = await self.session.execute(stmt)
-        res = Task.model_validate(res.scalar_one())
-        return res  # здесь валидируем энтити
+        res = TaskOut.model_validate(res.scalar_one())
+        return res
 
     async def find_one(self, **filter_by):
         stmt = select(self.model).filter_by(**filter_by).with_for_update()
         res = await self.session.execute(stmt)
-        res = res.scalar_one_or_none()
+        res = TaskOut.model_validate(res.scalar_one_or_none())
         return res
-
-    async def find_all(self):
-        res = await self.session.execute(select(self.model))
-        return res.scalars().all()
 
     async def update_one(self, params: dict, **filter_by):
         stmt = (

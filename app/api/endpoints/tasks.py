@@ -24,23 +24,14 @@ async def create_task(
 async def get_tasks(
     uow: IUnitOfWork = Depends(UnitOfWork),
     task_filter: TaskFilter = FilterDepends(TaskFilter),
-    page: int = Query(ge=0, default=0),
-    size: int = Query(ge=1, le=100),
+    limit: int = Query(ge=1, le=100),
+    offset: int = Query(ge=0, default=0),
 ):
-    offset_min = page * size
-    offset_max = (page + 1) * size
 
     async with uow:
-        tasks = await uow.task.get_filter(task_filter)
+        tasks = await uow.task.get_filter(task_filter, limit, offset)
 
-    res = tasks[offset_min:offset_max] + [
-        {
-            "page": page,
-            "size": size,
-            "total": math.ceil(len(tasks) / size) - 1,
-        }
-    ]
-    return res
+    return tasks
 
 
 @tasks_router.get("/{task_id}")
