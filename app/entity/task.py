@@ -30,7 +30,7 @@ class TaskCreate(BaseModel):
     priority: TaskPriority = TaskPriority.MEDIUM
 
 
-class TaskFromDB(BaseModel):
+class Task(BaseModel):
     id: UUID
     title: str
     description: str

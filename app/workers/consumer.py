@@ -38,43 +38,40 @@ class TaskWorker:
             await self.process_task(task_id)
 
 
-    async def process_task(self, task_id: str):
-            async with self.uow:
-                task = await self.uow.task.find_one(id=task_id)
+    async def process_task(self, task_id: str):#? try except finally
+        async with self.uow:
+            task = await self.uow.task.find_one(id=task_id)
+            if not task:
+                logger.info(f"Task {task_id} not found")
+                return
 
-                if not task:
-                    logger.info(f"Task {task_id} not found")
-                    return
+            if task.status != TaskStatus.PENDING:
+                logger.info(f"Wrong status for task {task_id}")
+                return
 
-                if task.status != TaskStatus.PENDING:
-                    logger.info(f"Wrong status for task {task_id}")
-                    return
+            task.status = TaskStatus.IN_PROGRESS
+            task.started_at = datetime.now(timezone.utc)
+            await self.uow.commit()
+        await self.complete_task(task_id)
 
-                task.status = TaskStatus.IN_PROGRESS
-                task.started_at = datetime.now(timezone.utc)
+
+    async def complete_task(self, task_id: str):
+        async with self.uow:
+            task = await self.uow.task.find_one(id=task_id)
+            try:
+                pass # причина ошибки если asyncio.sleep(...)
+
+            except Exception as e:
+                logger.exception(f"Task {task_id} failed: {e}")
+                task.error = f"error: {e.__class__}"
+                task.status = TaskStatus.FAILED
+            else:
+                logger.info(f"Task {task_id} completed")
+                task.result = "task completed"
+                task.status = TaskStatus.COMPLETED
+            finally:
+                task.finished_at = datetime.now(timezone.utc)
                 await self.uow.commit()
-
-                try:
-                    task = await self.uow.task.find_one(id=task_id)
-                    if not task:
-                        return
-
-                    await asyncio.sleep(2)
-
-                    task.result = "task completed"
-                    task.status = TaskStatus.COMPLETED
-                    task.finished_at = datetime.now(timezone.utc)
-                    await self.uow.commit()
-                    logger.info(f"Task {task_id} completed")
-
-                except Exception as e:
-                    print(str(e))
-                    logger.exception(f"Task {task_id} failed: {e}")
-                    if task:
-                        task.error = f"error: {e.__class__}"
-                        task.status = TaskStatus.FAILED
-                        task.finished_at = datetime.now(timezone.utc)
-                        await self.uow.commit()
 
 
     async def start(self):
