@@ -1,16 +1,24 @@
-import math
+from typing import Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from fastapi_filter import FilterDepends
+from fastapi_filter.contrib.sqlalchemy import Filter
 
 from app.api.dependencies import get_task_service
-from app.entity.filter import TaskFilter
+from app.db.models import Task
 from app.entity.task import TaskCreate, TaskStatus
 from app.services.task import TaskService
 from app.utils.unitofwork import IUnitOfWork, UnitOfWork
 
 tasks_router = APIRouter(prefix="/api/v1/tasks")
+
+
+class TaskFilter(Filter):
+    status__in: Optional[list[TaskStatus]] = None
+
+    class Constants(Filter.Constants):
+        model = Task
 
 
 @tasks_router.post("/", status_code=201)
@@ -27,7 +35,6 @@ async def get_tasks(
     limit: int = Query(ge=1, le=100),
     offset: int = Query(ge=0, default=0),
 ):
-
     async with uow:
         tasks = await uow.task.get_filter(task_filter, limit, offset)
 
