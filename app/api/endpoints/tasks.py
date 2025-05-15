@@ -11,7 +11,7 @@ from app.entity.task import TaskCreate, TaskStatus
 from app.services.task import TaskService
 from app.utils.unitofwork import IUnitOfWork, UnitOfWork
 
-tasks_router = APIRouter(prefix="/api/v1/tasks")
+tasks_router = APIRouter(prefix="/tasks")
 
 
 class TaskFilter(Filter):

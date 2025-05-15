@@ -13,7 +13,7 @@ class TaskRepository(SQLAlchemyRepository):
         query = select(self.model)
         query = task_filter.filter(query)
         query = query.offset(offset).limit(limit)
-        res = await self.session.execute(query)
-        task_models = res.scalars().all()
+        result = await self.session.execute(query)
+        task_models = result.scalars().all()
         tasks = [TaskOut.model_validate(task_model) for task_model in task_models]
         return tasks

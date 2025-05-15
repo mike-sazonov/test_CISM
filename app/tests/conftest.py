@@ -1,6 +1,5 @@
-import unittest.mock
+from typing import Any
 
-import pytest
 import pytest_asyncio
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.pool import StaticPool
@@ -16,7 +15,7 @@ engine = create_async_engine(
     connect_args={"check_same_thread": False},
     poolclass=StaticPool,
 )
-AsyncSessionLocal = async_sessionmaker(
+async_session_maker = async_sessionmaker(
     bind=engine,
     expire_on_commit=False,
     class_=AsyncSession,
@@ -32,12 +31,14 @@ async def initialize_database():
         await conn.run_sync(Base.metadata.drop_all)
 
 
-@pytest.fixture
-def rabbit_service():
-    return unittest.mock.AsyncMock(spec=RabbitProducer)
+class MockRabbitProducer(RabbitProducer):
+    async def publish(
+        self, routing_key: str, message_body: dict[str, Any], priority: int
+    ):
+        pass
 
 
 class UnitOfWorkTest(UnitOfWork):
     def __init__(self):
         super().__init__()
-        self.session_factory = async_sessionmaker
+        self.session_factory = async_session_maker

@@ -20,15 +20,14 @@ class SQLAlchemyRepository(AbstractRepository):
 
     async def add_one(self, data: dict):
         stmt = insert(self.model).values(**data).returning(self.model)
-        res = await self.session.execute(stmt)
-        res = TaskOut.model_validate(res.scalar_one())
-        return res
+        result = await self.session.execute(stmt)
+        return TaskOut.model_validate(result.scalar_one())
 
     async def find_one(self, **filter_by):
         stmt = select(self.model).filter_by(**filter_by).with_for_update()
-        res = await self.session.execute(stmt)
-        res = TaskOut.model_validate(res.scalar_one_or_none())
-        return res
+        result = await self.session.execute(stmt)
+        instance = result.scalar_one_or_none()
+        return TaskOut.model_validate(instance) if instance else None
 
     async def update_one(self, params: dict, **filter_by):
         stmt = (
