@@ -1,17 +1,17 @@
-from app.entity.task import Task, TaskCreate, TaskPriority, TaskStatus
-from app.services.rabbit import RabbitService
+from app.entity.task import TaskOut, TaskCreate, TaskPriority, TaskStatus
+from app.services.rabbit import RabbitProducer
 from app.utils.unitofwork import IUnitOfWork
 
 
 class TaskService:
-    def __init__(self, uow: IUnitOfWork, rabbit_service: RabbitService):
+    def __init__(self, uow: IUnitOfWork, rabbit_producer: RabbitProducer):
         self.uow = uow
-        self.rabbit_service = rabbit_service
+        self.rabbit_producer = rabbit_producer
 
-    async def publish_task(self, task: Task):
+    async def publish_task(self, task: TaskOut):
         async with self.uow:
             await self.uow.task.update_one({"status": TaskStatus.PENDING}, id=task.id)
-            await self.rabbit_service.publish(
+            await self.rabbit_producer.publish(
                 routing_key="task.created",
                 message_body={
                     "task_id": str(task.id),

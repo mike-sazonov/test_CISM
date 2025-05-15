@@ -6,16 +6,16 @@ from fastapi import FastAPI
 from app.api.endpoints.tasks import tasks_router
 from app.core.config import settings
 from app.core.logger import logger
-from app.services.rabbit import RabbitService
+from app.services.rabbit import RabbitProducer
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    app.state.rabbit_service = RabbitService(rabbitmq_url=settings.RABBITMQ_URL)
-    await app.state.rabbit_service.connect()
+    app.state.rabbit_producer = RabbitProducer(rabbitmq_url=settings.RABBITMQ_URL)
+    await app.state.rabbit_producer.connect()
     logger.info("RabbitMQ connected")
     yield
-    await app.state.rabbit_service.close()
+    await app.state.rabbit_producer.close()
     logger.info("RabbitMQ connect is close")
 
 
