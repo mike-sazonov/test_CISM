@@ -3,18 +3,18 @@ import json
 from datetime import datetime, timezone
 from typing import Any
 
-from app.core.logger import logger
-from app.entity.task import TaskStatus
-from app.utils.unitofwork import IUnitOfWork, UnitOfWork
-
 from aio_pika import (
     ExchangeType,
+    IncomingMessage,
     Message,
     RobustChannel,
     RobustConnection,
     connect_robust,
-    IncomingMessage
 )
+
+from app.core.logger import logger
+from app.entity.task import TaskStatus
+from app.utils.unitofwork import IUnitOfWork, UnitOfWork
 
 
 class RabbitService:
@@ -38,7 +38,7 @@ class RabbitProducer(RabbitService):
         self,
         rabbitmq_url: str,
         queue_name: str = "task_queue",
-        exchange_name: str = "tasks"
+        exchange_name: str = "tasks",
     ):
         super().__init__(rabbitmq_url, queue_name)
         self.exchange_name = exchange_name
@@ -94,7 +94,7 @@ class RabbitConsumer(RabbitService):
         self,
         rabbitmq_url: str,
         queue_name: str = "task_queue",
-        uow: IUnitOfWork = UnitOfWork()
+        uow: IUnitOfWork = UnitOfWork(),
     ):
         super().__init__(rabbitmq_url, queue_name)
         self.uow = uow

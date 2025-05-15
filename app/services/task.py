@@ -1,4 +1,4 @@
-from app.entity.task import TaskOut, TaskCreate, TaskPriority, TaskStatus
+from app.entity.task import TaskCreate, TaskOut, TaskPriority, TaskStatus
 from app.services.rabbit import RabbitProducer
 from app.utils.unitofwork import IUnitOfWork
 
