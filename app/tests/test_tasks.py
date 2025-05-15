@@ -54,11 +54,11 @@ async def test_get_task_by_invalid_id():
     response = client.get(f"api/v1/tasks/{invalid_id}")
 
     assert response.status_code == 404
-    assert response.json() == {'detail': 'Task not found'}
+    assert response.json() == {"detail": "Task not found"}
 
 
 @pytest.mark.asyncio
 async def test_get_task_not_uuid():
-    response = client.get(f"api/v1/tasks/{"random_string"}")
+    response = client.get(f"api/v1/tasks/{'random_string'}")
 
     assert response.status_code == 422
