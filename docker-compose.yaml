@@ -1,0 +1,42 @@
+version: "3.9"
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: task_app
+    ports:
+      - 8000:8000
+    env_file:
+      - docker.env
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    volumes:
+      - ./app/:/app/app
+    command: sh -c "uv run alembic upgrade head && uv run fastapi dev main.py --host 0.0.0.0 --port 8000 --reload"
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: task_db
+    environment:
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASS}
+    expose:
+      - 5432
+    env_file:
+      - docker.env
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: [ "CMD", "rabbitmq-diagnostics", "ping" ]
+      interval: 5s
+      timeout: 3s
+      retries: 5
